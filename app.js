@@ -74,7 +74,8 @@ app.get('/auth/google/callback',
         // Successful authentication, redirect home.
         res.redirect('/profile');
     });
-    app.get('/auth/facebook',
+// FACEBOOK AUTH ROUTE
+app.get('/auth/facebook',
     passport.authenticate('facebook'));
 
 app.get('/auth/facebook/callback',

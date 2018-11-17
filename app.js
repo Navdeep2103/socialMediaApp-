@@ -126,9 +126,34 @@ app.post('/addEmail',(req,res)=>{
         .then(()=>{
             res.redirect('/profile');
         }
-        )
-    })
-})
+        );
+    });
+});
+//HANDLE PHONE POST ROUTE
+app.post('/addPhone',(req,res)=>{
+    const phone= req.body.phone;
+    User.findById({_id: req.user._id})
+    .then((user)=>
+    {
+        user.phone = phone;
+        user.save()
+        .then(()=>{
+        res.redirect('/profile')
+        });
+    });
+});
+//handel location post route
+app.post('/addLocation',(req,res)=>{
+    const location= req.body.location;
+    User.findById({_id: req.user._id})
+    .then((user)=>{
+        user.location= location;
+        user.save()
+        .then(()=>{
+        res.redirect('/profile')
+        });
+    });
+});
 // Handle User logout route
 app.get('/logout', (req, res) => {
     req.logout();

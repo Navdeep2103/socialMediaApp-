@@ -33,7 +33,6 @@ passport.use(new InstagramStrategy({
                     firstname: profile.displayName.substring(0,profile.displayName.indexOf(' ')),
                     lastname: profile.displayName.substring(0,profile.displayName.indexOf(' '), profile.displayName.length),
                     fullname: profile.displayName,
-                    email: profile.emails[0].value,
                     image: profile._json.data.profile_picture
                 }
                 new User(newUser).save()

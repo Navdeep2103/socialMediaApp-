@@ -8,18 +8,18 @@ const bodyParser = require("body-parser");
 const cookieParser = require('cookie-parser');
 // Connect to MongoURI exported from external file
 const keys = require('./config/keys');
-// User collection
+// Load models
 const User = require('./models/user');
+const Post = require('./models/post');
 // Link passports to the server
 require('./passport/google-passport');
 require('./passport/facebook-passport');
 require('./passport/instagram-passport');
-//Link helpers
-const
-{
+// Link helpers
+const {
     ensureAuthentication,
     ensureGuest
-}=require('./helpers/auth');
+} = require('./helpers/auth');
 // initialize application
 const app = express();
 // Express config
@@ -61,7 +61,7 @@ mongoose.connect(keys.MongoURI, {
 const port = process.env.PORT || 3000;
 // Handle routes
 app.get('/', ensureGuest, (req, res) => {
-    res.render('home');
+    res.render('home'); 
 });
 
 app.get('/about', (req, res) => {
@@ -84,7 +84,7 @@ app.get('/auth/google/callback',
 // FACEBOOK AUTH ROUTE
 app.get('/auth/facebook',
     passport.authenticate('facebook',{
-        scope:'email'
+        scope: 'email'
     }));
 
 app.get('/auth/facebook/callback',
@@ -95,18 +95,18 @@ app.get('/auth/facebook/callback',
         // Successful authentication, redirect home.
         res.redirect('/profile');
     });
-    //HANDLE INSTA AUTH ROUTE
-    app.get('/auth/instagram',
-  passport.authenticate('instagram'));
+// HANDLE INSTAGRAM AUTH ROUTE
+app.get('/auth/instagram',
+    passport.authenticate('instagram'));
 
-app.get('/auth/instagram/callback', 
-  passport.authenticate('instagram', 
-  { failureRedirect: '/' 
-}),
-  (req, res) =>{
-    // Successful authentication, redirect home.
-    res.redirect('/profile');
-  });
+app.get('/auth/instagram/callback',
+    passport.authenticate('instagram', {
+        failureRedirect: '/'
+    }),
+    (req, res) => {
+        // Successful authentication, redirect home.
+        res.redirect('/profile');
+    });
 // Handle profile route
 app.get('/profile', ensureAuthentication,(req, res) => {
     User.findById({_id: req.user._id})
@@ -116,41 +116,91 @@ app.get('/profile', ensureAuthentication,(req, res) => {
         });
     })
 });
-// Handle Email Post route
-app.post('/addEmail',(req,res)=>{
-    const email =req.body.email;
-    User.findById({_id: req.user._id})
-    .then((user)=>{
-        user.email=email;
-        user.save()
-        .then(()=>{
-            res.redirect('/profile');
-        }
-        );
-    });
-});
-//HANDLE PHONE POST ROUTE
-app.post('/addPhone',(req,res)=>{
-    const phone= req.body.phone;
-    User.findById({_id: req.user._id})
-    .then((user)=>
-    {
-        user.phone = phone;
-        user.save()
-        .then(()=>{
-        res.redirect('/profile')
+// HANDLE ROUTE FOR ALL USERS
+app.get('/users', ensureAuthentication, (req, res) => {
+    User.find({}).then((users) => {
+        res.render('users', {
+            users:users
         });
     });
 });
-//handel location post route
-app.post('/addLocation',(req,res)=>{
-    const location= req.body.location;
+// Display one user profile
+app.get('/user/:id', (req, res) => {
+    User.findById({_id: req.params.id})
+    .then((user) => {
+        res.render('user', {
+            user:user
+        });
+    });
+});
+// HANDLE EMAIL POST ROUTE
+app.post('/addEmail', (req, res) => {
+    const email = req.body.email;
     User.findById({_id: req.user._id})
-    .then((user)=>{
-        user.location= location;
+    .then((user) => {
+        user.email = email;
         user.save()
-        .then(()=>{
-        res.redirect('/profile')
+        .then(() => {
+            res.redirect('/profile');
+        });
+    });
+});
+// HANDLE PHONE POST ROUTE
+app.post('/addPhone', (req, res) => {
+    const phone = req.body.phone;
+    User.findById({_id: req.user._id})
+    .then((user) => {
+        user.phone = phone;
+        user.save()
+        .then(() => {
+            res.redirect('/profile');
+        });
+    });
+});
+// HANDLE LOCATION POST ROUTE
+app.post('/addLocation', (req, res) => {
+    const location = req.body.location;
+    User.findById({_id: req.user._id})
+    .then((user) => {
+        user.location = location;
+        user.save()
+        .then(() => {
+            res.redirect('/profile');
+        });
+    });
+});
+// HANDLE get ROUTES FOR POSTS
+app.get('/addPost', (req, res) => {
+    res.render('addPost');
+});
+// handle post route
+app.post('/savePost', (req, res) => {
+    var allowComments;
+    if(req.body.allowComments){
+        allowComments = true;
+    }else{
+        allowComments = false;
+    }
+    const newPost = {
+        title: req.body.title,
+        body: req.body.body,
+        status: req.body.status,
+        allowComments: allowComments,
+        user: req.user._id
+    }
+    new Post(newPost).save()
+    .then(() => {
+        res.redirect('/posts');
+    });
+});
+// handle posts route
+app.get('/posts', ensureAuthentication, (req, res) => {
+    Post.find({status:'public'})
+    .populate('user')
+    .sort({date:'desc'})
+    .then((posts) => {
+        res.render('publicPosts', {
+            posts:posts
         });
     });
 });

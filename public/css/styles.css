@@ -53,11 +53,27 @@ h1{
 #address {
     color: green;
 }
-.post-user-pic
-{
+.post-user-pic {
     width: 100px;
-    height:auto;
+    height: auto;
 }
 .red{
-    color:green;
+    color: red;
+}
+#comment-user-picture{
+    width: 65px;
+    height: auto;
+}
+#users-image{
+    width: 100px;
+    height: auto;
+
+}
+#users-box
+{
+    margin: 5px 5px 5px 5px; 
+}
+.row
+{
+    width: 100%;
 }
